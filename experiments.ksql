@@ -1,0 +1,59 @@
+CREATE OR REPLACE STREAM experimentevents (
+    EventId VARCHAR,
+    ExperimentId VARCHAR,
+    Phase INT,
+    LastTime VARCHAR,
+    LastValue DOUBLE
+)
+WITH (kafka_topic='experiment-events', value_format='json', partitions=1);
+
+CREATE OR REPLACE STREAM experimentmeta (
+    id VARCHAR,
+    name VARCHAR,
+    state VARCHAR,
+    startTime VARCHAR,
+    operator VARCHAR
+    )
+WITH (kafka_topic='experiment-meta', value_format='json', partitions=1);
+
+
+CREATE OR REPLACE TABLE Experiments AS
+ SELECT
+    id ,
+    Latest_by_offset(name) as Name,
+    Latest_by_offset(state) as State,
+    LATEST_BY_OFFSET(startTime) as StartTime,
+    LATEST_BY_OFFSET(operator) as Operator
+  FROM ExperimentMeta
+  GROUP BY id   EMIT CHANGES;
+
+CREATE OR REPLACE TABLE ExperimentStates  AS
+    SELECT ExperimentId as id,
+    LATEST_BY_OFFSET(Phase) as CurrentPhase,
+    LATEST_BY_OFFSET(LastTime) as LastTime,
+    LATEST_BY_OFFSET(LastValue) as CurrentValue
+    FROM experimentevents
+    GROUP BY ExperimentId
+    EMIT CHANGES;
+
+CREATE OR REPLACE TABLE PhaseStates  AS
+SELECT
+    CONCAT(ExperimentId, CAST(Phase as STRING)) ,
+    LATEST_BY_OFFSET(ExperimentId),
+    LATEST_BY_OFFSET(Phase),
+    LATEST_BY_OFFSET(LastTime) as Timeing,
+    LATEST_BY_OFFSET(LastValue) as CurrentValue
+FROM experimentevents
+GROUP BY CONCAT(ExperimentId, CAST(Phase as STRING))
+EMIT CHANGES;
+
+CREATE OR REPLACE TABLE States as
+SELECT
+    e.id
+    Name,
+    CurrentPhase,
+    LastTime,
+    CurrentValue
+FROM Experiments  e
+JOIN ExperimentStates es
+ON e.id = es.id;
