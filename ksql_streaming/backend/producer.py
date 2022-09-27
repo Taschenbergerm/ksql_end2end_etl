@@ -15,6 +15,7 @@ class Exporter(typing.Protocol):
     def export_info(self, msg: str):
         ...
 
+
 class LogExporter:
 
     @staticmethod
@@ -40,7 +41,7 @@ class Experiment:
     _change_chance: float = 0.0
     _last_timestamp: datetime.datetime = datetime.datetime.now()
     _last_value: float = 0.0
-    _id = str = str(uuid.uuid4())
+    _id:str = dataclasses.field(default_factory= lambda: str(uuid.uuid4()))
 
 
     def report_meta(self):
@@ -70,7 +71,7 @@ class Experiment:
             self.check_state_change()
             self.emit_value()
             time.sleep(10)
-        #self.report_end()
+        self.report_end()
 
     def emit_value(self):
         self._last_value = self._last_value + self.generate_noise(self.current_phase)
@@ -125,7 +126,3 @@ class Experiment:
         return random.random() ** 2
 
 
-if __name__ == '__main__':
-    exporter = LogExporter()
-    p = Experiment("test", exporter)
-    p.run()
