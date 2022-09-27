@@ -113,7 +113,7 @@ class Backend:
         return {"tables": tables, "streams": streams}
 
     def get_phase_states(self):
-        query = "SELECT * FROM PHASESTATES;"
+        query = "SELECT * FROM PHASESTATES"
         return self.query(query)
 
     def get_phase_state_by_id(self, id: str):
