@@ -38,9 +38,9 @@ CREATE OR REPLACE TABLE ExperimentStates  AS
 
 CREATE OR REPLACE TABLE PhaseStates  AS
 SELECT
-    CONCAT(ExperimentId, CAST(Phase as STRING)) ,
-    LATEST_BY_OFFSET(ExperimentId),
-    LATEST_BY_OFFSET(Phase),
+    CONCAT(ExperimentId, CAST(Phase as STRING)) id,
+    LATEST_BY_OFFSET(ExperimentId) as ExperimentId,
+    LATEST_BY_OFFSET(Phase) as Phase,
     LATEST_BY_OFFSET(LastTime) as Timeing,
     LATEST_BY_OFFSET(LastValue) as CurrentValue
 FROM experimentevents
@@ -49,7 +49,7 @@ EMIT CHANGES;
 
 CREATE OR REPLACE TABLE States as
 SELECT
-    e.id
+    e.id as id,
     Name,
     CurrentPhase,
     LastTime,
