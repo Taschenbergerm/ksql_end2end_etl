@@ -1,0 +1,7 @@
+RESPONSE_SIZE = "x-Response-bytes"
+CONTENT_DISPOSITION = "Content-Disposition"
+REQUEST_ID = "X-Request-ID"
+REQUEST_Id = "X-Request-Id"
+ELAPSED_TIME = "X-Elapsed-Time"
+WARNINGS = "X-Warning"
+TIMESTAMP = "X-Timestamp"
