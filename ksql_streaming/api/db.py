@@ -99,6 +99,7 @@ class KsqlResponse:
     def __iter__(self):
         return iter(self.as_records())
 
+
 @dataclasses.dataclass
 class Backend:
     host: str

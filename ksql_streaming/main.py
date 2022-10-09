@@ -1,28 +1,37 @@
+import dataclasses
 import logging
 import random
 import string
 import multiprocessing as mp
 import time
+import typing
 
 import kafka
 from loguru import logger
 
 from ksql_streaming.backend import producer
 
-import faust
-
-
 
 def random_name():
     length = random.randint(5,20)
     return "".join([random.choice(string.ascii_letters) for _ in range(length)])
 
+
+@dataclasses.dataclass
 class KafkaExporter():
 
-    def __init__(self, prefix: str = "experiment"):
-        self.producer = kafka.KafkaProducer(bootstrap_servers=["0.0.0.0:9093"],
+    bootstrap_servers: typing.Union[typing.List[str], str] = "0.0.0.0:9093"
+    prefix: str = "experiment"
+    producer: typing.Optional[kafka.KafkaProducer] = None
+
+    def __post_init__(self):
+
+        if isinstance(self.bootstrap_servers, str):
+            self.bootstrap_servers = [self.bootstrap_servers]
+
+        self.producer = kafka.KafkaProducer(bootstrap_servers=self.bootstrap_servers,
                                             value_serializer=lambda v: v.encode('utf-8'))
-        self.prefix = prefix
+
 
     def export(self, msg: str):
         topic = f"{self.prefix}-events"
@@ -38,6 +47,7 @@ class KafkaExporter():
         future.get(10)
         logger.success(f"Exporter | SUC | {topic} |{msg}")
 
+
 def agent():
     exporter = KafkaExporter()
     while True:
@@ -46,6 +56,7 @@ def agent():
             exporter=exporter
         )
         experiment.run()
+
 
 def main():
 
@@ -66,6 +77,3 @@ def main():
             p.join()
     finally:
         logging.info("Good Bye")
-
-if __name__ == '__main__':
-    main()
